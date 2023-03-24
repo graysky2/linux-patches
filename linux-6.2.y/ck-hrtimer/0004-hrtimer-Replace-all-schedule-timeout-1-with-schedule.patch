@@ -1,4 +1,4 @@
-From b4d099075101953c2ade341a6db3172aa3f9e724 Mon Sep 17 00:00:00 2001
+From 91507ab760c73b18aef00c2783de0c4e41212c46 Mon Sep 17 00:00:00 2001
 From: graysky <therealgraysky@proton.me>
 Date: Wed, 5 Oct 2022 05:43:13 -0400
 Subject: [PATCH 4/8] hrtimer: Replace all schedule timeout(1) with
@@ -15,7 +15,6 @@ Subject: [PATCH 4/8] hrtimer: Replace all schedule timeout(1) with
  drivers/accessibility/speakup/synth.c          | 14 ++++----------
  drivers/block/swim.c                           |  5 +++--
  drivers/char/ipmi/ipmi_msghandler.c            |  2 +-
- drivers/char/ipmi/ipmi_ssif.c                  |  2 +-
  drivers/comedi/drivers/ni_mio_common.c         |  2 +-
  drivers/gpu/drm/vmwgfx/vmwgfx_irq.c            |  2 +-
  drivers/media/pci/ivtv/ivtv-ioctl.c            |  2 +-
@@ -32,7 +31,7 @@ Subject: [PATCH 4/8] hrtimer: Replace all schedule timeout(1) with
  drivers/video/fbdev/pxafb.c                    |  2 +-
  fs/btrfs/delalloc-space.c                      |  2 +-
  sound/usb/line6/pcm.c                          |  2 +-
- 27 files changed, 36 insertions(+), 41 deletions(-)
+ 26 files changed, 35 insertions(+), 40 deletions(-)
 
 diff --git a/drivers/accessibility/speakup/speakup_acntpc.c b/drivers/accessibility/speakup/speakup_acntpc.c
 index a27e6bbf05da..703d32ed9172 100644
@@ -228,19 +227,6 @@ index 186f1fee7534..5584e987066a 100644
  	}
  
  	/* No need for locks, the interface is down. */
-diff --git a/drivers/char/ipmi/ipmi_ssif.c b/drivers/char/ipmi/ipmi_ssif.c
-index 4bfd1e306616..48285a3e0ae8 100644
---- a/drivers/char/ipmi/ipmi_ssif.c
-+++ b/drivers/char/ipmi/ipmi_ssif.c
-@@ -1270,7 +1270,7 @@ static void shutdown_ssif(void *send_info)
- 
- 	/* make sure the driver is not looking for flags any more. */
- 	while (ssif_info->ssif_state != SSIF_NORMAL)
--		schedule_timeout(1);
-+		schedule_min_hrtimeout();
- 
- 	ssif_info->stopping = true;
- 	del_timer_sync(&ssif_info->watch_timer);
 diff --git a/drivers/comedi/drivers/ni_mio_common.c b/drivers/comedi/drivers/ni_mio_common.c
 index d39998565808..7c7d6844b074 100644
 --- a/drivers/comedi/drivers/ni_mio_common.c
@@ -333,10 +319,10 @@ index 687dd542f7f6..fcde62700320 100644
  
  	return err;
 diff --git a/drivers/net/usb/lan78xx.c b/drivers/net/usb/lan78xx.c
-index f18ab8e220db..2f2a35f971a0 100644
+index 068488890d57..6270715b1bd6 100644
 --- a/drivers/net/usb/lan78xx.c
 +++ b/drivers/net/usb/lan78xx.c
-@@ -3179,7 +3179,7 @@ static void lan78xx_terminate_urbs(struct lan78xx_net *dev)
+@@ -3154,7 +3154,7 @@ static void lan78xx_terminate_urbs(struct lan78xx_net *dev)
  	/* maybe wait for deletions to finish. */
  	while (!skb_queue_empty(&dev->rxq) ||
  	       !skb_queue_empty(&dev->txq)) {
@@ -459,5 +445,5 @@ index 6a4af725aedd..aeecf54b7a9f 100644
  	if (alive)
  		dev_err(line6pcm->line6->ifcdev,
 -- 
-2.39.2
+2.40.0
 

@@ -1,4 +1,4 @@
-From a01ee3fdf3bd82516c87f43b9a78396c423cf854 Mon Sep 17 00:00:00 2001
+From b4b2b4e1126ed54d9df07cffd8d157ca78e43f8d Mon Sep 17 00:00:00 2001
 From: graysky <therealgraysky@proton.me>
 Date: Fri, 16 Dec 2022 08:11:55 -0500
 Subject: [PATCH 1/8] hrtimer: Create highres timeout variants of
@@ -47,7 +47,7 @@ index b303472255be..0b64d1e91edb 100644
  
  #endif	/* FREEZER_H_INCLUDED */
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 63d242164b1a..7d161c6c9d66 100644
+index 853d08f7562b..853c2bfdfa21 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -293,13 +293,40 @@ enum {
@@ -94,10 +94,10 @@ index 63d242164b1a..7d161c6c9d66 100644
  extern void schedule_preempt_disabled(void);
  asmlinkage void preempt_schedule_irq(void);
 diff --git a/kernel/time/hrtimer.c b/kernel/time/hrtimer.c
-index 3ae661ab6260..2a2b107b128b 100644
+index e4f0e3b0c4f4..1a707c21738c 100644
 --- a/kernel/time/hrtimer.c
 +++ b/kernel/time/hrtimer.c
-@@ -2385,3 +2385,72 @@ int __sched schedule_hrtimeout(ktime_t *expires,
+@@ -2387,3 +2387,72 @@ int __sched schedule_hrtimeout(ktime_t *expires,
  	return schedule_hrtimeout_range(expires, 0, mode);
  }
  EXPORT_SYMBOL_GPL(schedule_hrtimeout);
@@ -171,5 +171,5 @@ index 3ae661ab6260..2a2b107b128b 100644
 +}
 +EXPORT_SYMBOL(schedule_msec_hrtimeout_uninterruptible);
 -- 
-2.39.2
+2.40.0
 

@@ -1,4 +1,4 @@
-From 3b2c7aaff2aee7106ccfd2ad9563d479f5d83932 Mon Sep 17 00:00:00 2001
+From 9aff6e8de6b2540565826ab3444355d9f5656c32 Mon Sep 17 00:00:00 2001
 From: graysky <therealgraysky@proton.me>
 Date: Wed, 5 Oct 2022 05:43:38 -0400
 Subject: [PATCH 5/8] hrtimer: Replace all calls to
@@ -36,7 +36,7 @@ index 521534d5c1e5..ee2f36687202 100644
  		return 0;
  
 diff --git a/drivers/iio/light/tsl2563.c b/drivers/iio/light/tsl2563.c
-index d0e42b73203a..fd8e5117be80 100644
+index 71302ae864d9..0f30c5e83c99 100644
 --- a/drivers/iio/light/tsl2563.c
 +++ b/drivers/iio/light/tsl2563.c
 @@ -271,11 +271,7 @@ static void tsl2563_wait_adc(struct tsl2563_chip *chip)
@@ -308,5 +308,5 @@ index 5d2e54e06e30..b7620118a1a8 100644
  }
  
 -- 
-2.39.2
+2.40.0
 

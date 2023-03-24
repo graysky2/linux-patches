@@ -1,4 +1,4 @@
-From 133b70ac85efccdc49415c435fab4d1d724ee5b2 Mon Sep 17 00:00:00 2001
+From b166793ed195be5b493db7f4640cd64cfe1006e5 Mon Sep 17 00:00:00 2001
 From: graysky <therealgraysky@proton.me>
 Date: Fri, 24 Mar 2023 03:37:02 -0400
 Subject: [PATCH 8/8] clockevents, hrtimer: Make hrtimer granularity and
@@ -12,7 +12,7 @@ Subject: [PATCH 8/8] clockevents, hrtimer: Make hrtimer granularity and
  3 files changed, 68 insertions(+), 5 deletions(-)
 
 diff --git a/kernel/sysctl.c b/kernel/sysctl.c
-index c6d9dec11b74..308fdbe5d0e3 100644
+index 1c240d2c99bc..35eeb5dec8ec 100644
 --- a/kernel/sysctl.c
 +++ b/kernel/sysctl.c
 @@ -92,6 +92,9 @@ EXPORT_SYMBOL_GPL(sysctl_long_vals);
@@ -25,10 +25,10 @@ index c6d9dec11b74..308fdbe5d0e3 100644
  
  #ifdef CONFIG_PERF_EVENTS
  static const int six_hundred_forty_kb = 640 * 1024;
-@@ -1652,6 +1655,24 @@ static struct ctl_table kern_table[] = {
- 		.extra1		= SYSCTL_ZERO,
- 	},
- #endif /* CONFIG_NUMA_BALANCING */
+@@ -1638,6 +1641,24 @@ int proc_do_static_key(struct ctl_table *table, int write,
+ }
+ 
+ static struct ctl_table kern_table[] = {
 +	{
 +		.procname       = "hrtimer_granularity_us",
 +		.data           = &hrtimer_granularity_us,
@@ -51,7 +51,7 @@ index c6d9dec11b74..308fdbe5d0e3 100644
  		.procname	= "panic",
  		.data		= &panic_timeout,
 diff --git a/kernel/time/clockevents.c b/kernel/time/clockevents.c
-index 5d85014d59b5..50406e057791 100644
+index 960143b183cd..c62a26fd9cc9 100644
 --- a/kernel/time/clockevents.c
 +++ b/kernel/time/clockevents.c
 @@ -190,8 +190,9 @@ int clockevents_tick_resume(struct clock_event_device *dev)
@@ -66,10 +66,10 @@ index 5d85014d59b5..50406e057791 100644
  /**
   * clockevents_increase_min_delta - raise minimum delta of a clock event device
 diff --git a/kernel/time/hrtimer.c b/kernel/time/hrtimer.c
-index f29c00e9709c..b2352612b8ea 100644
+index 796a992611fb..7e6c0b013830 100644
 --- a/kernel/time/hrtimer.c
 +++ b/kernel/time/hrtimer.c
-@@ -2393,7 +2393,7 @@ EXPORT_SYMBOL_GPL(schedule_hrtimeout);
+@@ -2395,7 +2395,7 @@ EXPORT_SYMBOL_GPL(schedule_hrtimeout);
  long __sched schedule_msec_hrtimeout(long timeout)
  {
  	struct hrtimer_sleeper t;
@@ -78,7 +78,7 @@ index f29c00e9709c..b2352612b8ea 100644
  	ktime_t expires;
  
  	if (!timeout) {
-@@ -2410,9 +2410,8 @@ long __sched schedule_msec_hrtimeout(long timeout)
+@@ -2412,9 +2412,8 @@ long __sched schedule_msec_hrtimeout(long timeout)
  	if (jiffs > 4 || hrtimer_resolution >= NSEC_PER_SEC / HZ || pm_freezing)
  		return schedule_timeout(jiffs);
  
@@ -89,7 +89,7 @@ index f29c00e9709c..b2352612b8ea 100644
  
  	hrtimer_init_sleeper_on_stack(&t, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
  	hrtimer_set_expires_range_ns(&t.timer, expires, delta);
-@@ -2434,9 +2433,51 @@ long __sched schedule_msec_hrtimeout(long timeout)
+@@ -2436,9 +2435,51 @@ long __sched schedule_msec_hrtimeout(long timeout)
  
  EXPORT_SYMBOL(schedule_msec_hrtimeout);
  

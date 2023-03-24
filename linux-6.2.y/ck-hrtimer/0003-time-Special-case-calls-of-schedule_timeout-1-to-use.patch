@@ -1,4 +1,4 @@
-From a85b2d0ec8d5602bd241d4988a1c3230f6a72c95 Mon Sep 17 00:00:00 2001
+From dcd83b1bfc7aa94901c989333566c2d9489a6097 Mon Sep 17 00:00:00 2001
 From: graysky <therealgraysky@proton.me>
 Date: Wed, 5 Oct 2022 05:42:56 -0400
 Subject: [PATCH 3/8] time: Special case calls of schedule_timeout(1) to use
@@ -51,5 +51,5 @@ index 63cfa1bbec8e..c39b817b139e 100644
  	while (timeout && !signal_pending(current))
  		timeout = schedule_timeout_interruptible(timeout);
 -- 
-2.39.2
+2.40.0
 
