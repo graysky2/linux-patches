@@ -1,8 +1,8 @@
-From dcd83b1bfc7aa94901c989333566c2d9489a6097 Mon Sep 17 00:00:00 2001
+From ffeea8b5475925bca95f801e78f11de1caed4e80 Mon Sep 17 00:00:00 2001
 From: graysky <therealgraysky@proton.me>
-Date: Wed, 5 Oct 2022 05:42:56 -0400
+Date: Sat, 25 Mar 2023 02:05:11 -0400
 Subject: [PATCH 3/8] time: Special case calls of schedule_timeout(1) to use
- the min hrtimeout of 1ms, working around low Hz resolutions.
+ the min hrtimeout of 1ms, working around low Hz resolutions
 
 ---
  kernel/time/timer.c | 24 ++++++++++++++++++++++--

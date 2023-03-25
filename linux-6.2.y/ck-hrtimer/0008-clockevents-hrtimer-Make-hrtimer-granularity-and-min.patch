@@ -1,6 +1,6 @@
-From b166793ed195be5b493db7f4640cd64cfe1006e5 Mon Sep 17 00:00:00 2001
+From 48bc023cbc448b4bf30d99b541a986bdf2e49d12 Mon Sep 17 00:00:00 2001
 From: graysky <therealgraysky@proton.me>
-Date: Fri, 24 Mar 2023 03:37:02 -0400
+Date: Sat, 25 Mar 2023 02:06:15 -0400
 Subject: [PATCH 8/8] clockevents, hrtimer: Make hrtimer granularity and
  minimum hrtimeout configurable in sysctl. Set default granularity to 100us
  and min timeout to 500us

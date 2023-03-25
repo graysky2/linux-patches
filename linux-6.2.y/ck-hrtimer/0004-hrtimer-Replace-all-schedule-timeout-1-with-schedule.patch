@@ -1,6 +1,6 @@
-From 91507ab760c73b18aef00c2783de0c4e41212c46 Mon Sep 17 00:00:00 2001
+From 765da93e359ce0a01b3306c212a310a72c368b02 Mon Sep 17 00:00:00 2001
 From: graysky <therealgraysky@proton.me>
-Date: Wed, 5 Oct 2022 05:43:13 -0400
+Date: Sat, 25 Mar 2023 02:05:35 -0400
 Subject: [PATCH 4/8] hrtimer: Replace all schedule timeout(1) with
  schedule_min_hrtimeout()
 
@@ -15,6 +15,7 @@ Subject: [PATCH 4/8] hrtimer: Replace all schedule timeout(1) with
  drivers/accessibility/speakup/synth.c          | 14 ++++----------
  drivers/block/swim.c                           |  5 +++--
  drivers/char/ipmi/ipmi_msghandler.c            |  2 +-
+ drivers/char/ipmi/ipmi_ssif.c                  |  2 +-
  drivers/comedi/drivers/ni_mio_common.c         |  2 +-
  drivers/gpu/drm/vmwgfx/vmwgfx_irq.c            |  2 +-
  drivers/media/pci/ivtv/ivtv-ioctl.c            |  2 +-
@@ -31,7 +32,7 @@ Subject: [PATCH 4/8] hrtimer: Replace all schedule timeout(1) with
  drivers/video/fbdev/pxafb.c                    |  2 +-
  fs/btrfs/delalloc-space.c                      |  2 +-
  sound/usb/line6/pcm.c                          |  2 +-
- 26 files changed, 35 insertions(+), 40 deletions(-)
+ 27 files changed, 36 insertions(+), 41 deletions(-)
 
 diff --git a/drivers/accessibility/speakup/speakup_acntpc.c b/drivers/accessibility/speakup/speakup_acntpc.c
 index a27e6bbf05da..703d32ed9172 100644
@@ -227,6 +228,19 @@ index 186f1fee7534..5584e987066a 100644
  	}
  
  	/* No need for locks, the interface is down. */
+diff --git a/drivers/char/ipmi/ipmi_ssif.c b/drivers/char/ipmi/ipmi_ssif.c
+index f49d2c2ef3cf..b395b893dd87 100644
+--- a/drivers/char/ipmi/ipmi_ssif.c
++++ b/drivers/char/ipmi/ipmi_ssif.c
+@@ -1272,7 +1272,7 @@ static void shutdown_ssif(void *send_info)
+ 
+ 	/* make sure the driver is not looking for flags any more. */
+ 	while (ssif_info->ssif_state != SSIF_IDLE)
+-		schedule_timeout(1);
++		schedule_min_hrtimeout();
+ 
+ 	ssif_info->stopping = true;
+ 	del_timer_sync(&ssif_info->watch_timer);
 diff --git a/drivers/comedi/drivers/ni_mio_common.c b/drivers/comedi/drivers/ni_mio_common.c
 index d39998565808..7c7d6844b074 100644
 --- a/drivers/comedi/drivers/ni_mio_common.c
