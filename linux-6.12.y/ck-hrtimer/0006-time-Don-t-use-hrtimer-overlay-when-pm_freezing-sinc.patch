@@ -1,0 +1,39 @@
+From 815cc8cf1a9e54e40ed22daa4ab2b1f4fa868d51 Mon Sep 17 00:00:00 2001
+From: graysky <therealgraysky@proton.me>
+Date: Sat, 25 Mar 2023 02:06:05 -0400
+Subject: [PATCH 6/7] time: Don't use hrtimer overlay when pm_freezing since
+ some drivers still don't correctly use freezable timeouts
+
+---
+ kernel/time/hrtimer.c | 2 +-
+ kernel/time/timer.c   | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/time/hrtimer.c b/kernel/time/hrtimer.c
+index df01c7b99f3c..c53cd9ecb885 100644
+--- a/kernel/time/hrtimer.c
++++ b/kernel/time/hrtimer.c
+@@ -2384,7 +2384,7 @@ long __sched schedule_msec_hrtimeout(long timeout)
+ 	 * (yet) better than Hz, as would occur during startup, use regular
+ 	 * timers.
+ 	 */
+-	if (jiffs > 4 || hrtimer_resolution >= NSEC_PER_SEC / HZ)
++	if (jiffs > 4 || hrtimer_resolution >= NSEC_PER_SEC / HZ || pm_freezing)
+ 		return schedule_timeout(jiffs);
+ 
+ 	secs = timeout / 1000;
+diff --git a/kernel/time/timer.c b/kernel/time/timer.c
+index 18f1b49640f3..9bd9eaa7c2d3 100644
+--- a/kernel/time/timer.c
++++ b/kernel/time/timer.c
+@@ -44,6 +44,7 @@
+ #include <linux/slab.h>
+ #include <linux/compat.h>
+ #include <linux/random.h>
++#include <linux/freezer.h>
+ #include <linux/sysctl.h>
+ 
+ #include <linux/uaccess.h>
+-- 
+2.47.0
+

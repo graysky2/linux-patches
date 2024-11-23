@@ -1,0 +1,131 @@
+From 7c1f82d34a405c94ea0b109cdfcc9d3d2b67beb2 Mon Sep 17 00:00:00 2001
+From: graysky <therealgraysky@proton.me>
+Date: Sat, 25 Mar 2023 02:06:15 -0400
+Subject: [PATCH 7/7] clockevents, hrtimer: Make hrtimer granularity and
+ minimum hrtimeout configurable in sysctl. Set default granularity to 100us
+ and min timeout to 500us
+
+---
+ kernel/sysctl.c       | 21 +++++++++++++++++++
+ kernel/time/hrtimer.c | 49 +++++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 66 insertions(+), 4 deletions(-)
+
+diff --git a/kernel/sysctl.c b/kernel/sysctl.c
+index 79e6cb1d5c48..bbd0186ce2d3 100644
+--- a/kernel/sysctl.c
++++ b/kernel/sysctl.c
+@@ -91,6 +91,9 @@ EXPORT_SYMBOL_GPL(sysctl_long_vals);
+ #if defined(CONFIG_SYSCTL)
+ 
+ /* Constants used for minimum and maximum */
++static int ten_thousand = 10000;
++extern int hrtimer_granularity_us;
++extern int hrtimeout_min_us;
+ 
+ #ifdef CONFIG_PERF_EVENTS
+ static const int six_hundred_forty_kb = 640 * 1024;
+@@ -1611,6 +1614,24 @@ int proc_do_static_key(const struct ctl_table *table, int write,
+ }
+ 
+ static struct ctl_table kern_table[] = {
++	{
++		.procname       = "hrtimer_granularity_us",
++		.data           = &hrtimer_granularity_us,
++		.maxlen         = sizeof(int),
++		.mode           = 0644,
++		.proc_handler   = &proc_dointvec_minmax,
++		.extra1         = SYSCTL_ONE,
++		.extra2         = &ten_thousand,
++	},
++	{
++		.procname       = "hrtimeout_min_us",
++		.data           = &hrtimeout_min_us,
++		.maxlen         = sizeof(int),
++		.mode           = 0644,
++		.proc_handler   = &proc_dointvec_minmax,
++		.extra1         = SYSCTL_ONE,
++		.extra2         = &ten_thousand,
++	},
+ 	{
+ 		.procname	= "panic",
+ 		.data		= &panic_timeout,
+diff --git a/kernel/time/hrtimer.c b/kernel/time/hrtimer.c
+index c53cd9ecb885..bdfa609b22ac 100644
+--- a/kernel/time/hrtimer.c
++++ b/kernel/time/hrtimer.c
+@@ -2370,7 +2370,7 @@ EXPORT_SYMBOL_GPL(schedule_hrtimeout);
+ long __sched schedule_msec_hrtimeout(long timeout)
+ {
+ 	struct hrtimer_sleeper t;
+-	int delta, secs, jiffs;
++	int delta, jiffs;
+ 	ktime_t expires;
+ 
+ 	if (!timeout) {
+@@ -2387,9 +2387,8 @@ long __sched schedule_msec_hrtimeout(long timeout)
+ 	if (jiffs > 4 || hrtimer_resolution >= NSEC_PER_SEC / HZ || pm_freezing)
+ 		return schedule_timeout(jiffs);
+ 
+-	secs = timeout / 1000;
+ 	delta = (timeout % 1000) * NSEC_PER_MSEC;
+-	expires = ktime_set(secs, delta);
++	expires = ktime_set(0, delta);
+ 
+ 	hrtimer_init_sleeper_on_stack(&t, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+ 	hrtimer_set_expires_range_ns(&t.timer, expires, delta);
+@@ -2411,9 +2410,51 @@ long __sched schedule_msec_hrtimeout(long timeout)
+ 
+ EXPORT_SYMBOL(schedule_msec_hrtimeout);
+ 
++#define USECS_PER_SEC 1000000
++extern int hrtimer_granularity_us;
++
++static inline long schedule_usec_hrtimeout(long timeout)
++{
++	struct hrtimer_sleeper t;
++	ktime_t expires;
++	int delta;
++
++	if (!timeout) {
++		__set_current_state(TASK_RUNNING);
++		return 0;
++	}
++
++	if (hrtimer_resolution >= NSEC_PER_SEC / HZ)
++		return schedule_timeout(usecs_to_jiffies(timeout));
++
++	if (timeout < hrtimer_granularity_us)
++		timeout = hrtimer_granularity_us;
++	delta = (timeout % USECS_PER_SEC) * NSEC_PER_USEC;
++	expires = ktime_set(0, delta);
++
++	hrtimer_init_sleeper_on_stack(&t, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
++	hrtimer_set_expires_range_ns(&t.timer, expires, delta);
++
++	hrtimer_sleeper_start_expires(&t, HRTIMER_MODE_REL);
++
++	if (likely(t.task))
++		schedule();
++
++	hrtimer_cancel(&t.timer);
++	destroy_hrtimer_on_stack(&t.timer);
++
++	__set_current_state(TASK_RUNNING);
++
++	expires = hrtimer_expires_remaining(&t.timer);
++	timeout = ktime_to_us(expires);
++	return timeout < 0 ? 0 : timeout;
++}
++
++int __read_mostly hrtimeout_min_us = 500;
++
+ long __sched schedule_min_hrtimeout(void)
+ {
+-	return schedule_msec_hrtimeout(1);
++	return usecs_to_jiffies(schedule_usec_hrtimeout(hrtimeout_min_us));
+ }
+ 
+ EXPORT_SYMBOL(schedule_min_hrtimeout);
+-- 
+2.47.0
+
